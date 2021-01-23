@@ -29,7 +29,6 @@ async fn main() {
             match cmd {
                 Command::Get { key, resp } => {
                     let res = client.get(&key).await;
-                    println!("res {:?}", res);
                     let _ = resp.send(res);
                 }
                 Command::Set { key, val, resp } => {
@@ -55,7 +54,16 @@ async fn main() {
         }
 
         let res = resp_rx.await;
-        println!("Got = {:?}", res);
+        match res {
+            // Unwrap a result
+            Ok(v) => println!(
+                "Got = {:?}",
+                // unwrap an option, then the reference to teh bytes as Vec<u8>, then the from utf8
+                // call's result. Hmmmm.
+                std::str::from_utf8(&v.unwrap().unwrap()).unwrap()
+            ),
+            Err(e) => eprintln!("Err {}", e),
+        }
     });
 
     let t2 = tokio::spawn(async move {
